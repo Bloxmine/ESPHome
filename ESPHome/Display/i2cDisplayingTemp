@@ -1,0 +1,63 @@
+esphome:
+  name: esphome-display
+  friendly_name: LCDi2c
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "insert your key here"
+
+ota:
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ""
+    password: ""
+
+captive_portal:
+
+i2c:
+  - id: bus_a
+    sda: GPIO21
+    scl: GPIO22
+
+sensor:
+  - platform: dht
+    pin: GPIO15
+    temperature:
+      id: temperatuur
+      name: "temperatuur"
+    humidity:
+      id: vochtigheid
+      name: "vochtigheid"
+    update_interval: 60s
+    model: DHT22
+
+display:
+  - platform: lcd_pcf8574
+    dimensions: 20x2
+    address: 0x27
+    lambda: |-
+        {
+            it.no_backlight();
+            char temperature_string[6];
+            char humidity_string[6];
+            dtostrf(id(temperatuur).state, 4, 2, temperature_string);
+            dtostrf(id(vochtigheid).state, 4, 2, humidity_string);
+
+            it.printf("T: %s °C\n", temperature_string);
+            it.printf("\nH: %s %%", humidity_string);
+        }
